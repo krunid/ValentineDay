@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมตอบคำถามวันวาเลนไทน์</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffccff, #ccffff);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+        }
+        .input-name, .quiz-container, .result-container {
+            display: none;
+        }
+        .input-name.active, .quiz-container.active, .result-container.active {
+            display: block;
+        }
+        .input-name h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #ff3366;
+        }
+        .input-name p {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        .input-name input {
+            width: 80%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ff6699;
+            border-radius: 25px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .input-name input:focus {
+            border-color: #ff3366;
+        }
+        .input-name input::placeholder {
+            color: #999;
+        }
+        .input-name button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            background: #ff3366;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+        .input-name button:hover {
+            background: #ff0044;
+            transform: scale(1.05);
+        }
+        .input-name button:active {
+            transform: scale(0.95);
+        }
+        .instructions {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 20px;
+        }
+        .error-message {
+            color: #ff0000;
+            font-size: 0.9em;
+            margin-top: 10px;
+            display: none;
+        }
+        .question {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        .options button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background: #ff6699;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .options button:hover {
+            background: #ff3366;
+        }
+        .timer {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .score {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .result {
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+        .restart-button, .show-answer-button, .play-again-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #33cc33;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .restart-button:hover, .show-answer-button:hover, .play-again-button:hover {
+            background: #28a745;
+        }
+        .show-answer-button {
+            background: #ff9933;
+        }
+        .show-answer-button:hover {
+            background: #ff6600;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- หน้ากรอกชื่อ -->
+        <div class="input-name active">
+            <h1>ยินดีต้อนรับสู่เกมตอบคำถามวันวาเลนไทน์ 🎉</h1>
+            <p>กรุณากรอกชื่อของคุณเพื่อเริ่มเกม:</p>
+            <input type="text" id="player-name" placeholder="เช่น นิดหน่อย">
+            <div class="error-message" id="error-message">กรุณากรอกชื่อของคุณ!</div>
+            <button onclick="startQuiz()">เริ่มเกม</button>
+            <p class="instructions">
+                <strong>คำแนะนำ:</strong><br>
+                - คุณมีเวลา 60 วินาทีต่อคำถาม<br>
+                - ตอบถูกได้ +1 คะแนน ตอบผิดได้ -1 คะแนน<br>
+                - เมื่อจบเกม คุณสามารถดูเฉลยหรือเล่นซ้ำได้
+            </p>
+        </div>
+
+        <!-- หน้าเล่นเกม -->
+        <div class="quiz-container">
+            <h1>เกมตอบคำถามวันวาเลนไทน์ 🎉</h1>
+            <div class="question" id="question">คำถามจะแสดงที่นี่</div>
+            <div class="options" id="options">
+                <!-- ตัวเลือกคำตอบจะแสดงที่นี่ -->
+            </div>
+            <div class="timer" id="timer">เวลาเหลือ: 60 วินาที</div>
+            <div class="score" id="score">คะแนน: 0</div>
+        </div>
+
+        <!-- หน้าผลลัพธ์ -->
+        <div class="result-container">
+            <h1>ผลลัพธ์</h1>
+            <div class="result" id="final-result"></div>
+            <button class="show-answer-button" onclick="showAnswers()">เฉลย</button>
+            <button class="play-again-button" onclick="playAgain()">เล่นซ้ำ</button>
+            <button class="restart-button" onclick="restartGame()">เริ่มต้นใหม่</button>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>จัดทำโดย: ครูนิด ศิษย์หลวงพ่อเสือ</p>
+            <p>ลิขสิทธิ์โปรแกรม © 2023</p>
+        </footer>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "วันวาเลนไทน์ตรงกับวันที่เท่าไร?",
+                options: ["14 กุมภาพันธ์", "14 มีนาคม", "14 เมษายน", "14 พฤษภาคม"],
+                answer: "14 กุมภาพันธ์",
+                explanation: "วันวาเลนไทน์ตรงกับวันที่ 14 กุมภาพันธ์ของทุกปี"
+            },
+            {
+                question: "วันวาเลนไทน์มีต้นกำเนิดมาจากประเทศใด?",
+                options: ["อังกฤษ", "อิตาลี", "ฝรั่งเศส", "สหรัฐอเมริกา"],
+                answer: "อิตาลี",
+                explanation: "วันวาเลนไทน์มีต้นกำเนิดมาจากประเทศอิตาลี"
+            },
+            {
+                question: "สัญลักษณ์ของวันวาเลนไทน์คืออะไร?",
+                options: ["หัวใจ", "ดาว", "ดอกกุหลาบ", "นกพิราบ"],
+                answer: "หัวใจ",
+                explanation: "สัญลักษณ์ของวันวาเลนไทน์คือหัวใจ ซึ่งแทนความรัก"
+            },
+            {
+                question: "วันวาเลนไทน์เกี่ยวข้องกับนักบุญคนใด?",
+                options: ["นักบุญปีเตอร์", "นักบุญวาเลนไทน์", "นักบุญจอร์จ", "นักบุญแพทริก"],
+                answer: "นักบุญวาเลนไทน์",
+                explanation: "วันวาเลนไทน์เกี่ยวข้องกับนักบุญวาเลนไทน์"
+            },
+            {
+                question: "ดอกไม้ที่นิยมมอบในวันวาเลนไทน์คือดอกอะไร?",
+                options: ["ดอกทานตะวัน", "ดอกกุหลาบ", "ดอกลิลลี่", "ดอกทิวลิป"],
+                answer: "ดอกกุหลาบ",
+                explanation: "ดอกกุหลาบเป็นดอกไม้ที่นิยมมอบในวันวาเลนไทน์"
+            },
+            {
+                question: "กิจกรรมที่นิยมทำในวันวาเลนไทน์คืออะไร?",
+                options: ["การมอบของขวัญ", "การไปเที่ยวทะเล", "การทำบุญ", "การเล่นกีฬา"],
+                answer: "การมอบของขวัญ",
+                explanation: "กิจกรรมที่นิยมทำในวันวาเลนไทน์คือการมอบของขวัญ"
+            },
+            {
+                question: "วันวาเลนไทน์เกี่ยวข้องกับวัฒนธรรมใด?",
+                options: ["วัฒนธรรมตะวันตก", "วัฒนธรรมเอเชีย", "วัฒนธรรมแอฟริกา", "วัฒนธรรมอเมริกาใต้"],
+                answer: "วัฒนธรรมตะวันตก",
+                explanation: "วันวาเลนไทน์เกี่ยวข้องกับวัฒนธรรมตะวันตก"
+            },
+            {
+                question: "สีที่เกี่ยวข้องกับวันวาเลนไทน์คือสีอะไร?",
+                options: ["สีแดง", "สีเขียว", "สีน้ำเงิน", "สีเหลือง"],
+                answer: "สีแดง",
+                explanation: "สีแดงเป็นสีที่เกี่ยวข้องกับวันวาเลนไทน์"
+            },
+            {
+                question: "วันวาเลนไทน์เป็นวันเฉลิมฉลองอะไร?",
+                options: ["ความรัก", "มิตรภาพ", "ครอบครัว", "การให้อภัย"],
+                answer: "ความรัก",
+                explanation: "วันวาเลนไทน์เป็นวันเฉลิมฉลองความรัก"
+            },
+            {
+                question: "ของขวัญที่นิยมมอบในวันวาเลนไทน์คืออะไร?",
+                options: ["ช็อกโกแลต", "หนังสือ", "เสื้อผ้า", "เครื่องประดับ"],
+                answer: "ช็อกโกแลต",
+                explanation: "ช็อกโกแลตเป็นของขวัญที่นิยมมอบในวันวาเลนไทน์"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let timer;
+        let playerName = "";
+        let userAnswers = []; // เก็บคำตอบของผู้เล่น
+
+        const inputNameSection = document.querySelector('.input-name');
+        const quizSection = document.querySelector('.quiz-container');
+        const resultSection = document.querySelector('.result-container');
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const timerElement = document.getElementById('timer');
+        const scoreElement = document.getElementById('score');
+        const finalResultElement = document.getElementById('final-result');
+        const errorMessage = document.getElementById('error-message');
+
+        function startQuiz() {
+            playerName = document.getElementById('player-name').value.trim();
+            if (!playerName) {
+                errorMessage.style.display = 'block';
+                return;
+            }
+            errorMessage.style.display = 'none';
+            inputNameSection.classList.remove('active');
+            quizSection.classList.add('active');
+            startGame();
+        }
+
+        function startGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            timeLeft = 60;
+            userAnswers = []; // รีเซ็ตคำตอบของผู้เล่น
+            scoreElement.textContent = `คะแนน: ${score}`;
+            loadQuestion();
+            startTimer();
+        }
+
+        function loadQuestion() {
+            const currentQuestion = questions[currentQuestionIndex];
+            questionElement.textContent = currentQuestion.question;
+            optionsElement.innerHTML = '';
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.addEventListener('click', () => checkAnswer(option));
+                optionsElement.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedOption) {
+            const currentQuestion = questions[currentQuestionIndex];
+            userAnswers.push(selectedOption); // บันทึกคำตอบของผู้เล่น
+            if (selectedOption === currentQuestion.answer) {
+                score += 1;
+            } else {
+                score -= 1;
+            }
+            scoreElement.textContent = `คะแนน: ${score}`;
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = `เวลาเหลือ: ${timeLeft} วินาที`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            quizSection.classList.remove('active');
+            resultSection.classList.add('active');
+            finalResultElement.textContent = `${playerName} คะแนนสุดท้ายของคุณคือ: ${score}`;
+        }
+
+        function showAnswers() {
+            // ฟังก์ชันแสดงเฉลย
+        }
+
+        function playAgain() {
+            resultSection.classList.remove('active');
+            quizSection.classList.add('active');
+            startGame();
+        }
+
+        function restartGame() {
+            resultSection.classList.remove('active');
+            inputNameSection.classList.add('active');
+        }
+    </script>
+</body>
+</html>
