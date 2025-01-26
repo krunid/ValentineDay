@@ -87,6 +87,9 @@
         .question {
             font-size: 1.5em;
             margin-bottom: 20px;
+            color: #ff3366; /* สีสันสำหรับคำถาม */
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
         .options button {
             display: block;
@@ -99,6 +102,7 @@
             color: white;
             font-size: 1em;
             cursor: pointer;
+            transition: background 0.3s ease;
         }
         .options button:hover {
             background: #ff3366;
@@ -133,6 +137,50 @@
         }
         .show-answer-button:hover {
             background: #ff6600;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 90%;
+            width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .popup.active {
+            display: block;
+        }
+        .popup table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .popup th, .popup td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .popup th {
+            background-color: #f2f2f2;
+        }
+        .popup .close-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #ff3333;
+            color: white;
+            cursor: pointer;
+        }
+        .popup .close-button:hover {
+            background: #cc0000;
         }
         footer {
             margin-top: 20px;
@@ -185,8 +233,27 @@
         </footer>
     </div>
 
+    <!-- Popup แสดงผลเฉลย -->
+    <div class="popup" id="answer-popup">
+        <h2>ผลการตอบคำถาม</h2>
+        <table id="answer-table">
+            <thead>
+                <tr>
+                    <th>คำถาม</th>
+                    <th>คำตอบของคุณ</th>
+                    <th>คำตอบที่ถูกต้อง</th>
+                    <th>ผลลัพธ์</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- แถวข้อมูลจะถูกเพิ่มที่นี่ -->
+            </tbody>
+        </table>
+        <button class="close-button" onclick="closePopup()">ปิด</button>
+    </div>
+
     <script>
-        const questions = [
+        let questions = [
             {
                 question: "วันวาเลนไทน์ตรงกับวันที่เท่าไร?",
                 options: ["14 กุมภาพันธ์", "14 มีนาคม", "14 เมษายน", "14 พฤษภาคม"],
@@ -265,6 +332,8 @@
         const scoreElement = document.getElementById('score');
         const finalResultElement = document.getElementById('final-result');
         const errorMessage = document.getElementById('error-message');
+        const answerPopup = document.getElementById('answer-popup');
+        const answerTableBody = document.querySelector('#answer-table tbody');
 
         function startQuiz() {
             playerName = document.getElementById('player-name').value.trim();
@@ -275,7 +344,15 @@
             errorMessage.style.display = 'none';
             inputNameSection.classList.remove('active');
             quizSection.classList.add('active');
+            shuffleQuestions(); // สลับคำถามและคำตอบ
             startGame();
+        }
+
+        function shuffleQuestions() {
+            questions = questions.sort(() => Math.random() - 0.5); // สลับคำถาม
+            questions.forEach(q => {
+                q.options = q.options.sort(() => Math.random() - 0.5); // สลับตัวเลือกคำตอบ
+            });
         }
 
         function startGame() {
@@ -340,7 +417,24 @@
         }
 
         function showAnswers() {
-            // ฟังก์ชันแสดงเฉลย
+            answerTableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            questions.forEach((q, index) => {
+                const userAnswer = userAnswers[index];
+                const isCorrect = userAnswer === q.answer;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${q.question}</td>
+                    <td>${userAnswer || "-"}</td>
+                    <td>${q.answer}</td>
+                    <td>${isCorrect ? "✅" : "❌"}</td>
+                `;
+                answerTableBody.appendChild(row);
+            });
+            answerPopup.classList.add('active'); // แสดง Popup
+        }
+
+        function closePopup() {
+            answerPopup.classList.remove('active'); // ปิด Popup
         }
 
         function playAgain() {
